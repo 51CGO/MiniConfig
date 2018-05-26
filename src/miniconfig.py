@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+import collections
+
+VALUE_TYPES = [str, int, float, bool, None]
+
+
+class MiniConfig(collections.MutableMapping):
+
+    def __init__(self, data={}, separator="/"):
+
+        self.separator = separator
+        self.data = {}
+        self.update(data)
+
+    def __getitem__(self, path):
+
+        list_keys = path.split(self.separator)
+
+        dict_cur = self.data
+
+        for key in list_keys:
+
+            if key not in dict_cur:
+                raise KeyError(path)
+
+            dict_cur = dict_cur[key]
+
+        return dict_cur
+
+    def __setitem__(self, path, value):
+
+        if type(path) != str:
+            raise TypeError("path must be a string")
+
+        if path == "":
+            raise ValueError("path must not be empty")
+
+        if type(value) not in [MiniConfig] + VALUE_TYPES:
+            raise TypeError("%s is not an allowed type for value")
+
+        list_keys = path.split(self.separator)
+
+        dict_cur = self.data
+
+        for key in list_keys[:-1]:
+
+            if key not in dict_cur:
+                dict_cur[key] = MiniConfig(separator=self.separator)
+
+            dict_cur = dict_cur[key]
+
+        dict_cur[list_keys[-1]] = value
+
+    def __delitem__(self, path):
+
+        list_keys = path.split(self.separator)
+
+        dict_cur = self.data
+
+        for key in list_keys:
+
+            if key not in dict_cur:
+                raise KeyError(path)
+
+            dict_cur = dict_cur[key]
+
+        del dict_cur
+
+    def __len__(self):
+
+        return len([k for k in self])
+
+    def __iter__(self):
+
+        for key in self.data:
+
+            if type(self.data[key]) in VALUE_TYPES:
+                yield key
+            else:
+                for subkey in self.data[key]:
+                    yield "%s%s%s" % (key, self.separator, subkey)
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __str__(self):
+        return str(self.data)
