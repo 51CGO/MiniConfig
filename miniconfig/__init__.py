@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import json
 
 VALUE_TYPES = [str, int, float, bool, None]
 
@@ -36,7 +37,7 @@ class MiniConfig(collections.MutableMapping):
         if path == "":
             raise ValueError("path must not be empty")
 
-        if type(value) not in [MiniConfig] + VALUE_TYPES:
+        if type(value) not in [dict] + VALUE_TYPES:
             raise TypeError("%s is not an allowed type for value")
 
         list_keys = path.split(self.separator)
@@ -46,7 +47,7 @@ class MiniConfig(collections.MutableMapping):
         for key in list_keys[:-1]:
 
             if key not in dict_cur:
-                dict_cur[key] = MiniConfig(separator=self.separator)
+                dict_cur[key] = {} #MiniConfig(separator=self.separator)
 
             dict_cur = dict_cur[key]
 
@@ -86,3 +87,13 @@ class MiniConfig(collections.MutableMapping):
 
     def __str__(self):
         return str(self.data)
+
+    def write(self,path_output):
+        fp = open(path_output, "w")
+        json.dump(self.data, fp, indent=2, sort_keys=True)
+        fp.close()
+
+    def read(self, path_input):
+        fp = open(path_input)
+        self.update(json.load(fp))
+        fp.close()
