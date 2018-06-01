@@ -38,7 +38,7 @@ class MiniConfig(collections.MutableMapping):
             raise ValueError("path must not be empty")
 
         if type(value) not in [dict] + VALUE_TYPES:
-            raise TypeError("%s is not an allowed type for value")
+            raise TypeError("%s is not an allowed type for value" % type(value))
 
         list_keys = path.split(self.separator)
 
@@ -74,13 +74,8 @@ class MiniConfig(collections.MutableMapping):
 
     def __iter__(self):
 
-        for key in self.data:
-
-            if type(self.data[key]) in VALUE_TYPES:
-                yield key
-            else:
-                for subkey in self.data[key]:
-                    yield "%s%s%s" % (key, self.separator, subkey)
+        for key in [k for k in rwalk(self.data, self.separator)]:
+            yield key
 
     def __repr__(self):
         return repr(self.data)
@@ -97,3 +92,15 @@ class MiniConfig(collections.MutableMapping):
         fp = open(path_input)
         self.update(json.load(fp))
         fp.close()
+
+
+def rwalk(dict_input, separator):
+
+    for key in dict_input:
+
+        if type(dict_input[key]) in VALUE_TYPES:
+            yield key
+
+        elif type(dict_input[key]) == dict:
+            for subkey in rwalk(dict_input[key], separator):
+                yield "%s%s%s" % (key, separator, subkey)

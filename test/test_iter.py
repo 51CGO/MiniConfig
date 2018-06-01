@@ -21,6 +21,6 @@ def test_empty():
 def test_branch_empty():
 
     d = miniconfig.MiniConfig()
-    d["a"] = miniconfig.MiniConfig()
+    d["a"] = {}
     keys = [k for k in d]
     assert keys == []
